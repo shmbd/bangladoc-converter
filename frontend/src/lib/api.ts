@@ -8,7 +8,22 @@ import {
   UploadInspectResponse,
 } from "./types";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "";
+function normalizeApiBase(raw: string): string {
+  const trimmed = raw.trim().replace(/\/+$/, "");
+  if (!trimmed) return "";
+  // Auto-convert Hugging Face Space page URL to direct .hf.space API host
+  const hfMatch = trimmed.match(/^https?:\/\/huggingface\.co\/spaces\/([^/]+)\/([^/]+)/i);
+  if (hfMatch) {
+    const sub = `${hfMatch[1]}-${hfMatch[2]}`
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, "-")
+      .replace(/-+/g, "-");
+    return `https://${sub}.hf.space`;
+  }
+  return trimmed;
+}
+
+const API_BASE = normalizeApiBase(process.env.NEXT_PUBLIC_API_BASE || "");
 
 export function apiUrl(path: string): string {
   if (path.startsWith("http://") || path.startsWith("https://")) return path;

@@ -52,7 +52,7 @@ jobs:
         env:
           GITHUB_PAGES: "true"
           NEXT_PUBLIC_BASE_PATH: ${{ steps.pages_path.outputs.base_path }}
-          NEXT_PUBLIC_API_BASE: ${{ vars.HF_BACKEND_URL }}
+          NEXT_PUBLIC_API_BASE: ${{ vars.HF_BACKEND_URL || 'https://saddam-nib-bangladoc-api.hf.space' }}
         run: npm run build
 
       - name: Add .nojekyll for _next static assets
