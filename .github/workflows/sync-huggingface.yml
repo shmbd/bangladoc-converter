@@ -20,7 +20,7 @@ jobs:
       - name: Push backend folder to Hugging Face Space
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-          HF_SPACE_ID: ${{ vars.HF_SPACE_ID || 'Saddam-nib/bangladoc-api' }}
+          HF_SPACE_ID: ${{ vars.HF_SPACE_ID || 'mbd-nib/bangladoc-api' }}
         run: |
           if [ -z "$HF_TOKEN" ] || [ -z "$HF_SPACE_ID" ]; then
             echo "::error::Missing HF_TOKEN secret or HF_SPACE_ID repository variable (e.g. username/bangladoc-api)."
