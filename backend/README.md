@@ -2,7 +2,7 @@
 title: BanglaDoc Converter API
 emoji: 📄
 colorFrom: green
-colorTo: slate
+colorTo: gray
 sdk: docker
 app_port: 7860
 pinned: false
