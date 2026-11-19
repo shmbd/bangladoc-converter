@@ -1,0 +1,19 @@
+# Python & Backend local artifacts
+backend/.venv/
+backend/vendor/
+backend/storage/
+backend/__pycache__/
+*.pyc
+*.sqlite3
+
+# Node & Frontend build artifacts
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/*.tsbuildinfo
+
+# OS & Secrets
+.env
+.env.*
+.DS_Store
+Thumbs.db
