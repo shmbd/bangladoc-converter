@@ -1,11 +1,6 @@
-name: Sync Backend to Hugging Face Spaces
+name: Sync Backend to Hugging Face Spaces (Manual)
 
 on:
-  push:
-    branches: ["main"]
-    paths:
-      - "backend/**"
-      - ".github/workflows/sync-huggingface.yml"
   workflow_dispatch:
 
 jobs:
@@ -28,7 +23,7 @@ jobs:
           fi
           TMP_DIR=$(mktemp -d)
           cp -r backend/. "$TMP_DIR/"
-          rm -rf "$TMP_DIR/.git" "$TMP_DIR/.venv" "$TMP_DIR/vendor" "$TMP_DIR/storage"
+          rm -rf "$TMP_DIR/.git" "$TMP_DIR/.venv" "$TMP_DIR/vendor" "$TMP_DIR/storage" "$TMP_DIR/assets"
           cd "$TMP_DIR"
           git init -b main
           git config user.name "github-actions[bot]"

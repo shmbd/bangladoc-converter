@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: bangladoc-api
+    runtime: docker
+    plan: free
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: BANGLADOC_STORAGE_DIR
+        value: /tmp/bangladoc_storage
+      - key: BANGLADOC_LOW_MEMORY
+        value: "1"

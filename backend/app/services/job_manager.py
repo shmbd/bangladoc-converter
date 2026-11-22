@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import gc
 import json
+import os
 import shutil
 import sqlite3
 import threading
@@ -41,7 +43,8 @@ from app.services.pdf_reconstructor import (
 from app.services.qa_evaluator import evaluate_conversion_quality
 
 _DB_LOCK = threading.Lock()
-_EXECUTOR = ThreadPoolExecutor(max_workers=2, thread_name_prefix="bangladoc_worker")
+_WORKERS = 1 if os.environ.get("BANGLADOC_LOW_MEMORY") == "1" else 2
+_EXECUTOR = ThreadPoolExecutor(max_workers=_WORKERS, thread_name_prefix="bangladoc_worker")
 _CANCELLED_JOBS: set[str] = set()
 
 
@@ -374,6 +377,7 @@ def _run_conversion_job(job_id: str, upload_rec: dict, settings: ConversionSetti
                 job_dir=job_dir,
             )
             ocr_pages.append(page_res)
+            gc.collect()
 
         doc.close()
 

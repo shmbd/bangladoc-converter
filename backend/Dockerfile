@@ -32,13 +32,21 @@ RUN mkdir -p /app/vendor/tessdata_best/configs /app/vendor/tessdata_fast/configs
       curl -fsSL "https://github.com/tesseract-ocr/tessdata_fast/raw/main/${lang}.traineddata" -o "/app/vendor/tessdata_fast/${lang}.traineddata"; \
     done
 
-# Copy backend source & SIL OFL Bangla fonts
+# Download SIL Open Font License Bangla Unicode fonts directly during build
+RUN mkdir -p /app/assets/fonts && \
+    curl -fsSL "https://github.com/google/fonts/raw/main/ofl/notosansbengali/NotoSansBengali%5Bwdth%2Cwght%5D.ttf" -o "/app/assets/fonts/NotoSansBengali-Regular.ttf" && \
+    curl -fsSL "https://github.com/google/fonts/raw/main/ofl/notoserifbengali/NotoSerifBengali%5Bwdth%2Cwght%5D.ttf" -o "/app/assets/fonts/NotoSerifBengali-Regular.ttf" && \
+    curl -fsSL "https://github.com/google/fonts/raw/main/ofl/hindsiliguri/HindSiliguri-Regular.ttf" -o "/app/assets/fonts/HindSiliguri-Regular.ttf" && \
+    curl -fsSL "https://github.com/google/fonts/raw/main/ofl/hindsiliguri/HindSiliguri-Bold.ttf" -o "/app/assets/fonts/HindSiliguri-Bold.ttf" && \
+    curl -fsSL "https://github.com/google/fonts/raw/main/ofl/hindsiliguri/HindSiliguri-Medium.ttf" -o "/app/assets/fonts/HindSiliguri-Medium.ttf" && \
+    cp "/app/assets/fonts/HindSiliguri-Regular.ttf" "/app/assets/fonts/Kalpurush-Regular.ttf"
+
+# Copy backend Python source
 COPY --chown=user:user app /app/app
-COPY --chown=user:user assets /app/assets
 
 RUN mkdir -p /tmp/bangladoc_storage && chown -R user:user /app /tmp/bangladoc_storage
 
 USER user
 EXPOSE 7860
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "7860"]
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-7860}"]

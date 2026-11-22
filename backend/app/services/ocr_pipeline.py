@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import io
+import os
 import re
 import subprocess
 from pathlib import Path
@@ -645,7 +646,8 @@ def process_pdf_page(
 
     # 2. Scanned / Image-based / Legacy ANSI page -> Render high-DPI raster & run OpenCV + Tesseract 5.5.3
     high_acc = settings.ocr_accuracy == "high"
-    dpi = 300 if high_acc else 210
+    low_mem = os.environ.get("BANGLADOC_LOW_MEMORY") == "1"
+    dpi = (225 if low_mem else 300) if high_acc else (185 if low_mem else 210)
     pt_to_px = dpi / 72.0
     px_to_pt = 72.0 / dpi
 
