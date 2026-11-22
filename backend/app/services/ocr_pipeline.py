@@ -12,6 +12,9 @@ import cv2
 import fitz
 import numpy as np
 
+if os.environ.get("BANGLADOC_LOW_MEMORY") == "1":
+    cv2.setNumThreads(1)
+
 from app.config import TESSDATA_BEST_DIR, TESSDATA_FAST_DIR, TESSERACT_CMD
 from app.models import (
     ConversionSettings,
@@ -101,7 +104,10 @@ def _preprocess_for_ocr(bgr_img: np.ndarray, high_accuracy: bool) -> tuple[np.nd
         # Check contrast dynamic range; only apply CLAHE/denoising when scan is genuinely faded/noisy
         p5, p95 = np.percentile(gray, [5, 95])
         if (p95 - p5) < 135:
-            denoised = cv2.fastNlMeansDenoising(gray, None, h=4, templateWindowSize=7, searchWindowSize=21)
+            if os.environ.get("BANGLADOC_LOW_MEMORY") == "1":
+                denoised = cv2.GaussianBlur(gray, (3, 3), 0)
+            else:
+                denoised = cv2.fastNlMeansDenoising(gray, None, h=4, templateWindowSize=7, searchWindowSize=21)
             clahe = cv2.createCLAHE(clipLimit=1.5, tileGridSize=(12, 12))
             return clahe.apply(denoised), angle, m_inv
         # Mild unsharp/normalization for crisp Kar/Fola/Hasanta strokes
@@ -353,7 +359,10 @@ def _run_tesseract_tsv(
     page_num: int,
 ) -> list[dict[str, str]]:
     """Invoke portable Tesseract 5.5.3 LSTM and return parsed TSV rows."""
-    tessdata_dir = TESSDATA_BEST_DIR if high_accuracy else TESSDATA_FAST_DIR
+    low_mem = os.environ.get("BANGLADOC_LOW_MEMORY") == "1"
+    # On 0.1-vCPU cloud tiers (BANGLADOC_LOW_MEMORY=1), int8 quantized tessdata_fast runs 6-8x faster without timing out
+    use_best = high_accuracy and not low_mem
+    tessdata_dir = TESSDATA_BEST_DIR if use_best else TESSDATA_FAST_DIR
     if not (tessdata_dir / "ben.traineddata").exists():
         tessdata_dir = TESSDATA_BEST_DIR
 
@@ -378,12 +387,18 @@ def _run_tesseract_tsv(
         "tessedit_create_tsv=1",
     ]
 
+    # Critical for 0.1 vCPU containers: OMP_THREAD_LIMIT=1 stops Tesseract spawning 64 OpenMP spin-wait threads!
+    tess_env = os.environ.copy()
+    tess_env["OMP_THREAD_LIMIT"] = "1"
+    tess_env["OMP_NUM_THREADS"] = "1"
+
     try:
         proc = subprocess.run(
             cmd,
             capture_output=True,
             check=True,
-            timeout=120,
+            timeout=300,
+            env=tess_env,
         )
         tsv_text = proc.stdout.decode("utf-8", errors="replace")
     finally:
@@ -647,7 +662,7 @@ def process_pdf_page(
     # 2. Scanned / Image-based / Legacy ANSI page -> Render high-DPI raster & run OpenCV + Tesseract 5.5.3
     high_acc = settings.ocr_accuracy == "high"
     low_mem = os.environ.get("BANGLADOC_LOW_MEMORY") == "1"
-    dpi = (225 if low_mem else 300) if high_acc else (185 if low_mem else 210)
+    dpi = (175 if low_mem else 300) if high_acc else (150 if low_mem else 210)
     pt_to_px = dpi / 72.0
     px_to_pt = 72.0 / dpi
 

@@ -3,6 +3,10 @@ FROM python:3.11-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     BANGLADOC_STORAGE_DIR=/tmp/bangladoc_storage \
+    BANGLADOC_LOW_MEMORY=1 \
+    OMP_THREAD_LIMIT=1 \
+    OMP_NUM_THREADS=1 \
+    OPENBLAS_NUM_THREADS=1 \
     PORT=7860
 
 # Install Linux Tesseract OCR + OpenCV runtime libs + curl

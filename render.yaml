@@ -11,3 +11,5 @@ services:
         value: /tmp/bangladoc_storage
       - key: BANGLADOC_LOW_MEMORY
         value: "1"
+      - key: OMP_THREAD_LIMIT
+        value: "1"
